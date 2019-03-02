@@ -1,10 +1,10 @@
 <?php
 /**
- * @desc simple! sunset-sunrise iCalendar generator to be used in Google Calendar, your phone and elsewhere
+ * @desc simple! Sabbath iCalendar generator to be used in Google Calendar, your phone and elsewhere
  * @since 2015-04-12
- * @author Allan Laal <allan@permanent.ee>
+ * @author Jon Schewe <jpschewe@mtu.net> based on code from Allan Laal <allan@permanent.ee>
  * @example http://sun.is.permanent.ee/?title=sunrise,sunset,length&label_sunrise=↑&label_sunset=↓&start=-100&end=365
- * @link https://github.com/allanlaal/sunrise-calendar-feed
+ * @link https://github.com/jpschewe/sabbath-calendar-feed
  */
 $version = '20190302T154400Z'; // modify this when you make changes in the code!
 
@@ -14,7 +14,7 @@ require_once('./config.php');
 // get and set timezone:
 $latitude = $config['latitude'];
 $longitude = $config['longitude'];
-		
+
 $timezoneId = $config['timezone'];
 
 date_default_timezone_set($timezoneId);
@@ -40,11 +40,15 @@ $out .= "X-LOTUS-CHARSET:UTF-8\r\n";
 $now = date('Y-m-d', time());
 for ($day=param('start', 0); $day<=param('end', 365); $day++)
 {
+	$current_date = strtotime($now.' +'.$day.' days')
+	$current = date('Ymd', $current_date)
+	$next = date('Ymd', strtotime($now.' +'.($day+1).' days'))
+
 	$out .= "BEGIN:VEVENT\r\n";
-	$out .= "DTSTART;VALUE=DATE:".date('Ymd', strtotime($now.' +'.$day.' days'))."\r\n";
-	$out .= "DTEND;VALUE=DATE:".date('Ymd', strtotime($now.' +'.($day+1).' days'))."\r\n";
+	$out .= "DTSTART;VALUE=DATE:".$current."\r\n";
+	$out .= "DTEND;VALUE=DATE:".$next."\r\n";
 	$out .= "DTSTAMP:".date('Ymd\THis\Z')."\r\n";
-	$out .= "UID:Permanent-Sunrise-".date('Ymd', strtotime($now.' +'.$day.' days'))."-$version\r\n";
+	$out .= "UID:Permanent-Sabbath-".$current."-$version\r\n";
 	$out .= "CLASS:PUBLIC\r\n";
 	$out .= "CREATED:$version\r\n";
 	$out .= "GEO:$latitude;$longitude\r\n"; //@see http://tools.ietf.org/html/rfc2445
@@ -71,7 +75,7 @@ for ($day=param('start', 0); $day<=param('end', 365); $day++)
 	$out .= "LAST-MODIFIED:$version\r\n";
 	$out .= "SEQUENCE:0\r\n";
 	$out .= "STATUS:CONFIRMED\r\n";
-	
+
 	$out .= "SUMMARY:";
 		foreach (explode(',', param('title', 'sunrise,sunset,length')) as $title)
 		{
@@ -86,7 +90,7 @@ for ($day=param('start', 0); $day<=param('end', 365); $day++)
 				{
 					$length = calc_day_length($sun_info['sunset'], $sun_info['sunrise']);
 				}
-				
+
 				$out .= param('label_'.$title, "").$length;
 			}
 			else
@@ -96,10 +100,10 @@ for ($day=param('start', 0); $day<=param('end', 365); $day++)
 			$out .= ' ';
 		}
 	$out .= "\r\n";
-	
+
 	$out .= "TRANSP:OPAQUE\r\n";
 	$out .= "END:VEVENT\r\n";
-	
+
 }
 
 $out .= 'END:VCALENDAR';
@@ -122,7 +126,7 @@ function calc_day_length($sunset, $sunrise)
 	$day_length_h = intval($day_length/60/60);
 	$day_length_min = round(($day_length - $day_length_h*60*60)/60, 0);
 	$length = "{$day_length_h}h".str_pad($day_length_min, 2, '0', STR_PAD_LEFT);
-	
+
 	return $length;
 }
 
@@ -136,10 +140,10 @@ function calc_day_length($sunset, $sunrise)
 function param($name, $default='')
 {
 //	echo "&$name=$default"; // builds URL parameters with the default values
-	
+
 	if (
 		isset($_GET[$name])
-		&& 
+		&&
 		!empty($_GET[$name])
 	)
 	{
@@ -149,6 +153,6 @@ function param($name, $default='')
 	{
 		$out = $default;
 	}
-	
+
 	return $out;
 }
