@@ -3,30 +3,21 @@
  * @desc simple! sunset-sunrise iCalendar generator to be used in Google Calendar, your phone and elsewhere
  * @since 2015-04-12
  * @author Allan Laal <allan@permanent.ee>
- * @example http://sun.is.permanent.ee/?latitude=59.4388618469&longitude=24.7544727325&title=sunrise,sunset,length&label_sunrise=↑&label_sunset=↓&start=-100&end=365
+ * @example http://sun.is.permanent.ee/?title=sunrise,sunset,length&label_sunrise=↑&label_sunset=↓&start=-100&end=365
  * @link https://github.com/allanlaal/sunrise-calendar-feed
  */
-$version = '20150410T000000Z'; // modify this when you make changes in the code!
+$version = '20190302T154400Z'; // modify this when you make changes in the code!
 
 // include config:
 require_once('./config.php');
 
 // get and set timezone:
-$latitude = param('latitude', $config['default_latitude']);
-$longitude = param('longitude', $config['default_longitude']);
+$latitude = $config['latitude'];
+$longitude = $config['longitude'];
 		
-// get and set timezone by latitude and longitude
-$url = "https://maps.googleapis.com/maps/api/timezone/json?location=$latitude,$longitude&timestamp=".time()."&key=".$config['google_timezone_api_key'];
-$json = file_get_contents($url);
-$timezone = json_decode($json);
+$timezoneId = $config['timezone'];
 
-if ($timezone->status != 'OK')
-{
-	die("ERROR! Cannot detect a timezone\n");
-}
-// else:
-
-date_default_timezone_set($timezone->timeZoneId);
+date_default_timezone_set($timezoneId);
 
 
 // buffer output so if anything fails, it wont display a partial calendar
@@ -35,7 +26,7 @@ $out .= "PRODID:-//Permanent Solutions Ltd//Sunrise Sunset Calendar//EN\r\n";
 $out .= "VERSION:5.1.4\r\n";
 $out .= "CALSCALE:GREGORIAN\r\n";
 $out .= "METHOD:PUBLISH\r\n";
-$out .= "X-WR-TIMEZONE:".$timezone->timeZoneId."\r\n";
+$out .= "X-WR-TIMEZONE:".$timezoneId."\r\n";
 $out .= "URL:https://github.com/allanlaal/sunrise-calendar-feed\r\n";
 $out .= "X-WR-CALNAME:Sunrise-Sunset\r\n";
 $out .= "X-WR-CALDESC:Display sunset and sunrise times as an all day event from a constantly updating vcalendar/ICS calendar in Google Calendar, your phone or elsewhere.\r\n";
