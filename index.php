@@ -1,12 +1,12 @@
 <?php
 /**
- * @desc simple! Sabbath iCalendar generator to be used in Google Calendar, your phone and elsewhere
- * @since 2015-04-12
- * @author Jon Schewe <jpschewe@mtu.net> based on code from Allan Laal <allan@permanent.ee>
- * @example http://sun.is.permanent.ee/?title=sunrise,sunset,length&label_sunrise=↑&label_sunset=↓&start=-100&end=365
- * @link https://github.com/jpschewe/sabbath-calendar-feed
- */
-$version = '20190302T154400Z'; // modify this when you make changes in the code!
+* @desc simple! Sabbath iCalendar generator to be used in Google Calendar, your phone and elsewhere
+* @since 2015-04-12
+* @author Jon Schewe <jpschewe@mtu.net> based on code from Allan Laal <allan@permanent.ee>
+* @example http://sun.is.permanent.ee/?title=sunrise,sunset,length&label_sunrise=↑&label_sunset=↓&start=-100&end=365
+* @link https://github.com/jpschewe/sabbath-calendar-feed
+*/
+$version = '20190302T170500Z'; // modify this when you make changes in the code!
 
 // include config:
 require_once('./config.php');
@@ -22,89 +22,61 @@ date_default_timezone_set($timezoneId);
 
 // buffer output so if anything fails, it wont display a partial calendar
 $out = "BEGIN:VCALENDAR\r\n";
-$out .= "PRODID:-//Permanent Solutions Ltd//Sunrise Sunset Calendar//EN\r\n";
+$out .= "PRODID:-//Schewe Consultants//Sabbath Calendar//EN\r\n";
 $out .= "VERSION:5.1.4\r\n";
 $out .= "CALSCALE:GREGORIAN\r\n";
 $out .= "METHOD:PUBLISH\r\n";
 $out .= "X-WR-TIMEZONE:".$timezoneId."\r\n";
-$out .= "URL:https://github.com/allanlaal/sunrise-calendar-feed\r\n";
-$out .= "X-WR-CALNAME:Sunrise-Sunset\r\n";
-$out .= "X-WR-CALDESC:Display sunset and sunrise times as an all day event from a constantly updating vcalendar/ICS calendar in Google Calendar, your phone or elsewhere.\r\n";
+$out .= "URL:https://github.com/jpschewe/sabbath-calendar-feed\r\n";
+$out .= "X-WR-CALNAME:Sabbath\r\n";
+$out .= "X-WR-CALDESC:Display begin and end of Sabbath from a constantly updating vcalendar/ICS calendar in Google Calendar, your phone or elsewhere.\r\n";
 $out .= "X-LOTUS-CHARSET:UTF-8\r\n";
 
 //$out .= "X-PUBLISHED-TTL:".(30*24*60*60)."\r\n"; // check back in 1 month
 //$out .= "REFRESH-INTERVAL\r\n";
 
-
-
 $now = date('Y-m-d', time());
 for ($day=param('start', 0); $day<=param('end', 365); $day++)
 {
-	$current_date = strtotime($now.' +'.$day.' days')
-	$current = date('Ymd', $current_date)
-	$next = date('Ymd', strtotime($now.' +'.($day+1).' days'))
+  $current_timestamp = strtotime($now.' +'.$day.' days');
+  $day_of_week = date('w', $current_timestamp);
+  $current = date('Ymd', $current_timestamp);
 
-	$out .= "BEGIN:VEVENT\r\n";
-	$out .= "DTSTART;VALUE=DATE:".$current."\r\n";
-	$out .= "DTEND;VALUE=DATE:".$next."\r\n";
-	$out .= "DTSTAMP:".date('Ymd\THis\Z')."\r\n";
-	$out .= "UID:Permanent-Sabbath-".$current."-$version\r\n";
-	$out .= "CLASS:PUBLIC\r\n";
-	$out .= "CREATED:$version\r\n";
-	$out .= "GEO:$latitude;$longitude\r\n"; //@see http://tools.ietf.org/html/rfc2445
+  if($day_of_week == 5 || $day_of_week == 6) {
+    $sun_info = date_sun_info($current_timestamp, $latitude, $longitude);
 
-	$sun_info = date_sun_info(strtotime($now.' +'.$day.' days'), $latitude, $longitude);
+    $start_timestamp = $sun_info['sunset'];
+    // add 60 seconds to make the end 1 minute after the start
+    $end_timestamp = $start_timestamp + 60;
 
-	$out .= 'DESCRIPTION:';
-		$out .= date('H:i', $sun_info['astronomical_twilight_begin']).	' Start of astronomical twilight\n';
-		$out .= date('H:i', $sun_info['nautical_twilight_begin']).		' Start of nautical twilight\n';
-		$out .= date('H:i', $sun_info['civil_twilight_begin']).			' Start of civil twilight\n';
-		$out .= date('H:i', $sun_info['sunrise']).						' Sunrise\n';
-		$out .= date('H:i', $sun_info['transit']).						' Noon\n';
-		$out .= date('H:i', $sun_info['sunset']).						' Sunset\n';
-		$out .= date('H:i', $sun_info['civil_twilight_end']).			' End of civil twilight\n';
-		$out .= date('H:i', $sun_info['nautical_twilight_end']).		' End of nautical twilight\n';
-		$out .= date('H:i', $sun_info['astronomical_twilight_end']).	' End of astronomical twilight\n';
-		$out .= '\n';
-		$out .= calc_day_length($sun_info['sunset'], $sun_info['sunrise']).											' Day length from Sunrise until Sunset\n';
-		$out .= calc_day_length($sun_info['civil_twilight_end'], $sun_info['civil_twilight_begin']).				' Day length for civil twilight\n';
-		$out .= calc_day_length($sun_info['nautical_twilight_end'], $sun_info['nautical_twilight_begin']).			' Day length for nautical twilight\n';
-		$out .= calc_day_length($sun_info['astronomical_twilight_end'], $sun_info['astronomical_twilight_begin']).	' Day length for astronomical twilight\n';
-	$out .= "\r\n";
+    // Need to set the timezone to UTC to ensure that it is properly added to the calendar
+    date_default_timezone_set('UTC');
+    $start = date('Ymd\THis\Z', $start_timestamp);
+    $end = date('Ymd\THis\Z', $end_timestamp);
+    date_default_timezone_set($timezoneId);
 
-	$out .= "LAST-MODIFIED:$version\r\n";
-	$out .= "SEQUENCE:0\r\n";
-	$out .= "STATUS:CONFIRMED\r\n";
+    $out .= "BEGIN:VEVENT\r\n";
+    $out .= "DTSTART:".$start."\r\n";
+    $out .= "DTEND:".$end."\r\n";
+    $out .= "DTSTAMP:".$start."\r\n";
+    $out .= "UID:Permanent-Sabbath-".$current."-$version\r\n";
+    $out .= "CLASS:PUBLIC\r\n";
+    $out .= "CREATED:$version\r\n";
+    $out .= "GEO:$latitude;$longitude\r\n"; //@see http://tools.ietf.org/html/rfc2445
 
-	$out .= "SUMMARY:";
-		foreach (explode(',', param('title', 'sunrise,sunset,length')) as $title)
-		{
-			if (strpos($title, 'length') !== FALSE)
-			{
-				if ($title !== 'length')
-				{
-					$type = str_replace('length_', '', $title);
-					$length = calc_day_length($sun_info[$type.'_twilight_end'], $sun_info[$type.'_twilight_begin']);
-				}
-				else
-				{
-					$length = calc_day_length($sun_info['sunset'], $sun_info['sunrise']);
-				}
+    $out .= 'DESCRIPTION:'.'Sunset is at '.date('g:i a', $sun_info['sunset'])."\r\n";
 
-				$out .= param('label_'.$title, "").$length;
-			}
-			else
-			{
-				$out .= param('label_'.$title).date('H:i', $sun_info[$title]);
-			}
-			$out .= ' ';
-		}
-	$out .= "\r\n";
+    $out .= "LAST-MODIFIED:$version\r\n";
+    $out .= "SEQUENCE:0\r\n";
+    $out .= "STATUS:CONFIRMED\r\n";
 
-	$out .= "TRANSP:OPAQUE\r\n";
-	$out .= "END:VEVENT\r\n";
+    $out .= "SUMMARY:".'Sunset is at '.date('g:i a', $sun_info['sunset'])."\r\n";
 
-}
+    $out .= "TRANSP:OPAQUE\r\n";
+    $out .= "END:VEVENT\r\n";
+  } // if Friday or Saturday
+
+} // foreach day
 
 $out .= 'END:VCALENDAR';
 
@@ -115,44 +87,44 @@ echo $out;
 
 
 /**
- * @param int $sunset
- * @param int $sunrise
- * @return string
- * @example 14h28
- */
+* @param int $sunset
+* @param int $sunrise
+* @return string
+* @example 14h28
+*/
 function calc_day_length($sunset, $sunrise)
 {
-	$day_length = $sunset - $sunrise;
-	$day_length_h = intval($day_length/60/60);
-	$day_length_min = round(($day_length - $day_length_h*60*60)/60, 0);
-	$length = "{$day_length_h}h".str_pad($day_length_min, 2, '0', STR_PAD_LEFT);
+  $day_length = $sunset - $sunrise;
+  $day_length_h = intval($day_length/60/60);
+  $day_length_min = round(($day_length - $day_length_h*60*60)/60, 0);
+  $length = "{$day_length_h}h".str_pad($day_length_min, 2, '0', STR_PAD_LEFT);
 
-	return $length;
+  return $length;
 }
 
 
 /**
- * @param string $name
- * @param string $default
- * @return string
- * @desc GET an URL parameter
- */
+* @param string $name
+* @param string $default
+* @return string
+* @desc GET an URL parameter
+*/
 function param($name, $default='')
 {
-//	echo "&$name=$default"; // builds URL parameters with the default values
+  //	echo "&$name=$default"; // builds URL parameters with the default values
 
-	if (
-		isset($_GET[$name])
-		&&
-		!empty($_GET[$name])
-	)
-	{
-		$out = filter_input(INPUT_GET, $name, FILTER_SANITIZE_STRING);
-	}
-	else
-	{
-		$out = $default;
-	}
+  if (
+    isset($_GET[$name])
+    &&
+    !empty($_GET[$name])
+    )
+    {
+      $out = filter_input(INPUT_GET, $name, FILTER_SANITIZE_STRING);
+    }
+    else
+    {
+      $out = $default;
+    }
 
-	return $out;
-}
+    return $out;
+  }
