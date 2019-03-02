@@ -1,54 +1,24 @@
-# sunrise
-Display sunset and sunrise times as all day events from an iCalendar feed in Google Calendar, your phone or elsewhere.
+# Sabbath sunset
+Display sunset times for Sabbath from an iCalendar feed in Google Calendar, your phone or elsewhere.
 
 ## usage
 
 Example calendar URL:
 
-	http://sun.is.permanent.ee/?latitude=59.4388618469&longitude=24.7544727325&title=sunrise,sunset,length_civil&label_length_civil=☼&label_sunrise=↑&label_sunset=↓&start=-100&end=365&filename=sunrise.ics
+	http://sun.is.permanent.ee/?start=-100&end=365&filename=sabbath.ics
 
-Modify the parameters in the URL according to your needs. You will atleast need to modify latitude and longitude.
+Modify the parameters in the URL according to your needs.
 
 Add the above url into your Google Calendar at Other Calendars -> down arrow box thingie -> Add by URL
 
-### latitude
-The latitude of your location, in degrees.
+### Configuration
+Copy config.example.php to config.php.
 
-	latitude=59.4388618469
-
-### longitude
-The longitude of your location, in degrees.
-
-	longitude=24.7544727325
-
-### title
-This sets what the calendar events title will be. You can use any of the below variables in any order:
-
-variable						| description
-:---------------				| :---------
-astronomical_twilight_begin		| Start of astronomical twilight
-nautical_twilight_begin			| Start of nautical twilight
-civil_twilight_begin			| Start of civil twilight
-sunrise							| Sunrise
-transit							| Noon
-sunset							| Sunset
-civil_twilight_end				| End of civil twilight
-nautical_twilight_end			| End of nautical twilight
-astronomical_twilight_end		| End of astronomical twilight
-length							| Day length from Sunrise until Sunset
-length_civil					| Day length for civil twilight
-length_nautical					| Day length for nautical twilight
-length_astronomical				| Day length for astronomical twilight
-
-	title=sunrise,sunset,length,length_civil
-
-### labels
-Normally the values of the variables in the calendar event titles are not prefixed with any text to conserve space, but you can change that by adding an URL parameter with the variable name prefixed with 'label_'.
-
-	label_astronomical_twilight_end=End%20of%20twilight
+You will want to specify your own location and the timezone for that location.
+The timezone is used for displaying the time inside the event description.
 
 ### start
-What day to start the calendar on from today. 
+What day to start the calendar on from today.
 
 	start=-100
 

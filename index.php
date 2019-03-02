@@ -1,9 +1,9 @@
 <?php
 /**
-* @desc simple! Sabbath iCalendar generator to be used in Google Calendar, your phone and elsewhere
+* @desc Sabbath iCalendar generator to be used in Google Calendar, your phone and elsewhere
 * @since 2015-04-12
 * @author Jon Schewe <jpschewe@mtu.net> based on code from Allan Laal <allan@permanent.ee>
-* @example http://sun.is.permanent.ee/?title=sunrise,sunset,length&label_sunrise=↑&label_sunset=↓&start=-100&end=365
+* @example http://sun.is.permanent.ee/?start=-100&end=365&filename=sabbath.ics
 * @link https://github.com/jpschewe/sabbath-calendar-feed
 */
 $version = '20190302T170500Z'; // modify this when you make changes in the code!
